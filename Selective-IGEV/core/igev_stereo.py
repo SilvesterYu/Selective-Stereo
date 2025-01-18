@@ -197,7 +197,7 @@ class IGEVStereo(nn.Module):
         # -- # (temp)
         obj = "basket_side"
         init_disp = np.load("/home/lifanyu/Documents/ZED_data/disparity_npy/" + obj + ".jpy")
-        reshaped_array = array.reshape(1, 1, array.shape[0], array.shape[1])
+        reshaped_disp = init_disp.reshape(1, 1, init_disp.shape[0], init_disp.shape[1])
         # breakpoint()
         disp_preds = []
 
