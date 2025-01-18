@@ -17,7 +17,7 @@ import torch.nn.functional as F
 # Usage: python demo_imgs.py --restore_ckpt ./pretrained_models/middlebury_finetune.pth --valid_iters 80 --max_disp 768
 
 
-DEVICE = "cuda"
+DEVICE = "cpu" # -- "cuda"
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -30,7 +30,8 @@ def load_image(imfile):
 
 def demo(args):
     model = torch.nn.DataParallel(IGEVStereo(args), device_ids=[0])
-    model.load_state_dict(torch.load(args.restore_ckpt))
+    model.to('cpu') # -- this line wasn't there
+    model.load_state_dict(torch.load(args.restore_ckpt, map_location='cpu')) # map_location wasn't there
 
     model = model.module
     model.to(DEVICE)

@@ -5,6 +5,7 @@ from core.update import BasicSelectiveMultiUpdateBlock, SpatialAttentionExtracto
 from core.extractor import MultiBasicEncoder, Feature
 from core.geometry import Combined_Geo_Encoding_Volume
 from core.submodule import *
+import cv2
 
 
 try:
@@ -195,13 +196,20 @@ class IGEVStereo(nn.Module):
         coords = torch.arange(w).float().to(match_left.device).reshape(1,1,w,1).repeat(b, h, 1, 1)
         disp = init_disp
         # -- # (temp)
-        obj = "basket_side"
-        disp_mastr = np.load("/home/lifanyu/Documents/ZED_data/disparity_npy/" + obj + "_cropped.npy")
-        mastr_w = disp_mastr[1]
-        init_disp = disp_mastr.reshape(1, 1, disp_mastr.shape[0], disp_mastr.shape[1]) * (disp.shape[1] / mastr_w)
+        obj = "bottle_side"
+        disp_mastr = np.load("/home/lifan/Documents/ZED_data/disparity_npy/" + obj + "_cropped.npy")
+        mastr_w = disp_mastr.shape[1]
+        mastr_h = disp_mastr.shape[0]
+        target_w = disp.shape[1]
+        dim = (mastr_w, mastr_h)
+        resized_disparity = cv2.resize(disp_mastr, dim, interpolation=cv2.INTER_AREA)
+
+        breakpoint()
+        init_disp = resized_disparity.reshape(1, 1, resized_disparity.shape[0], resized_disparity.shape[1]) * (target_w / mastr_w)
         init_disp = torch.Tensor(init_disp).to(match_left.device)
-        # -- end of temp
         # breakpoint()
+        # -- end of temp
+        
         disp_preds = []
 
         # GRUs iterations to update disparity
