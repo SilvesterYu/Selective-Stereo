@@ -6,6 +6,7 @@ from core.extractor import MultiBasicEncoder, Feature
 from core.geometry import Combined_Geo_Encoding_Volume
 from core.submodule import *
 import cv2
+import matplotlib.pyplot as plt
 
 
 try:
@@ -196,17 +197,32 @@ class IGEVStereo(nn.Module):
         coords = torch.arange(w).float().to(match_left.device).reshape(1,1,w,1).repeat(b, h, 1, 1)
         disp = init_disp
         # -- # (temp)
-        obj = "bottle_side"
+        obj = "handle_side"
         disp_mastr = np.load("/home/lifan/Documents/ZED_data/disparity_npy/" + obj + "_cropped.npy")
         mastr_w = disp_mastr.shape[1]
         mastr_h = disp_mastr.shape[0]
-        target_w = disp.shape[1]
-        dim = (mastr_w, mastr_h)
+        target_w = disp.shape[3]
+        target_h = disp.shape[2]
+        dim = (target_w, target_h)
         resized_disparity = cv2.resize(disp_mastr, dim, interpolation=cv2.INTER_AREA)
-
         breakpoint()
+        np.save("disp.npy", resized_disparity)
+        plt.figure(figsize=(30, 20))
+
+        # Change this if needed: remove the vmin and vmax to see the most common range for the disparity values
+        # and add vmin, vmax back for better visualizations and comparisons
+        plt.imshow(resized_disparity, cmap='jet', vmin=-25, vmax=175)
+        plt.colorbar(label='Disparity')
+        plt.title('Disparity Map')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.show()
+
+        # breakpoint()
         init_disp = resized_disparity.reshape(1, 1, resized_disparity.shape[0], resized_disparity.shape[1]) * (target_w / mastr_w)
         init_disp = torch.Tensor(init_disp).to(match_left.device)
+        disp = init_disp
+        
         # breakpoint()
         # -- end of temp
         
