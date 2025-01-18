@@ -196,8 +196,11 @@ class IGEVStereo(nn.Module):
         disp = init_disp
         # -- # (temp)
         obj = "basket_side"
-        init_disp = np.load("/home/lifanyu/Documents/ZED_data/disparity_npy/" + obj + ".jpy")
-        reshaped_disp = init_disp.reshape(1, 1, init_disp.shape[0], init_disp.shape[1])
+        disp_mastr = np.load("/home/lifanyu/Documents/ZED_data/disparity_npy/" + obj + "_cropped.npy")
+        mastr_w = disp_mastr[1]
+        init_disp = disp_mastr.reshape(1, 1, disp_mastr.shape[0], disp_mastr.shape[1]) * (disp.shape[1] / mastr_w)
+        init_disp = torch.Tensor(init_disp).to(match_left.device)
+        # -- end of temp
         # breakpoint()
         disp_preds = []
 
