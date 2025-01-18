@@ -121,25 +121,30 @@ class StereoDataset(data.Dataset):
         return len(self.image_list)
 
 class SceneFlowDatasets(StereoDataset):
-    def __init__(self, aug_params=None, root='/data/StereoDatasets/sceneflow', dstype='frames_finalpass', things_test=False):
+    def __init__(self, aug_params=None, root='data/StereoDatasets/sceneflow', dstype='frames_finalpass', things_test=False):
         super(SceneFlowDatasets, self).__init__(aug_params)
         assert os.path.exists(root)
         self.root = root
         self.dstype = dstype
 
-        if things_test:
-            self._add_things("TEST")
-        else:
-            self._add_things("TRAIN")
-            self._add_monkaa("TRAIN")
-            self._add_driving("TRAIN")
+        # if things_test:
+        #     self._add_things("TEST")
+        # else:
+        #     self._add_things("TRAIN")
+        #     self._add_monkaa("TRAIN")
+        #     self._add_driving("TRAIN")
+
+        self._add_things("")
 
     def _add_things(self, split='TRAIN'):
         """ Add FlyingThings3D data """
 
         original_length = len(self.disparity_list)
         root = self.root
-        left_images = sorted( glob(osp.join(root, self.dstype, split, '*/*/left/*.png')) )
+        # left_images = sorted( glob(osp.join(root, self.dstype, split, '*/*/left/*.png')) )
+        # right_images = [ im.replace('left', 'right') for im in left_images ]
+        
+        left_images = sorted( glob(osp.join('data', 'left.png')) )
         right_images = [ im.replace('left', 'right') for im in left_images ]
         disparity_images = [ im.replace(self.dstype, 'disparity').replace('.png', '.pfm') for im in left_images ]
 

@@ -172,6 +172,8 @@ class IGEVStereo(nn.Module):
             # Init disp from geometry encoding volume
             prob = F.softmax(self.classifier(geo_encoding_volume).squeeze(1), dim=1)
             init_disp = disparity_regression(prob, self.args.max_disp//4)
+            print("-------------------------------init_disp")
+            
             
             del prob, gwc_volume
 
@@ -192,6 +194,11 @@ class IGEVStereo(nn.Module):
         b, c, h, w = match_left.shape
         coords = torch.arange(w).float().to(match_left.device).reshape(1,1,w,1).repeat(b, h, 1, 1)
         disp = init_disp
+        # -- # (temp)
+        obj = "basket_side"
+        init_disp = np.load("/home/lifanyu/Documents/ZED_data/disparity_npy/" + obj + ".jpy")
+        reshaped_array = array.reshape(1, 1, array.shape[0], array.shape[1])
+        # breakpoint()
         disp_preds = []
 
         # GRUs iterations to update disparity
@@ -206,6 +213,7 @@ class IGEVStereo(nn.Module):
 
             # upsample predictions
             disp_up = self.upsample_disp(disp, mask_feat_4, stem_2x)
+            # breakpoint()
             disp_preds.append(disp_up)
 
         if test_mode:

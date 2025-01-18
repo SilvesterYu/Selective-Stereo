@@ -48,6 +48,7 @@ def demo(args):
 
             disp = model(image1, image2, iters=args.valid_iters, test_mode=True)
             disp = disp.cpu().numpy()
+            np.save("output/disparity.npy", disp[0][0])
             disp = padder.unpad(disp)
             file_stem = imfile1.split('/')[-2]
             filename = os.path.join(output_directory, f'{file_stem}.png')
@@ -57,9 +58,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--restore_ckpt', help="restore checkpoint", default=None)
     parser.add_argument('--save_numpy', action='store_true', help='save output as numpy arrays')
-    parser.add_argument('-l', '--left_imgs', help="path to all first (left) frames", default=None)
-    parser.add_argument('-r', '--right_imgs', help="path to all second (right) frames", default=None)
-    parser.add_argument('--output_directory', help="directory to save output", default=None)
+    parser.add_argument('-l', '--left_imgs', help="path to all first (left) frames", default="data/left.png")
+    parser.add_argument('-r', '--right_imgs', help="path to all second (right) frames", default="data/right.png")
+    parser.add_argument('--output_directory', help="directory to save output", default="output")
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--valid_iters', type=int, default=32, help='number of flow-field updates during forward pass')
 
@@ -73,6 +74,8 @@ if __name__ == '__main__':
     parser.add_argument('--slow_fast_gru', action='store_true', help="iterate the low-res GRUs more frequently")
     parser.add_argument('--n_gru_layers', type=int, default=3, help="number of hidden GRU levels")
     parser.add_argument('--max_disp', type=int, default=192, help="max disp of geometry encoding volume")
+    parser.add_argument('--precision_dtype', default='float16', choices=['float16', 'bfloat16', 'float32'], help='Choose precision type: float16 or bfloat16 or float32')
+
     
     args = parser.parse_args()
 
