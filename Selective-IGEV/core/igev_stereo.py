@@ -103,6 +103,12 @@ class IGEVStereo(nn.Module):
 
         self.feature = Feature()
 
+        # --
+        self.data_root_dir = args.data_root_dir
+        self.obj = args.obj
+        self.mast3r_init = args.mast3r_init
+        # --
+
         self.stem_2 = nn.Sequential(
             BasicConv_IN(3, 32, kernel_size=3, stride=2, padding=1),
             nn.Conv2d(32, 32, 3, 1, 1, bias=False),
@@ -196,34 +202,58 @@ class IGEVStereo(nn.Module):
         b, c, h, w = match_left.shape
         coords = torch.arange(w).float().to(match_left.device).reshape(1,1,w,1).repeat(b, h, 1, 1)
         disp = init_disp
+
         # -- # (temp)
-        obj = "handle_side"
-        disp_mastr = np.load("/home/lifan/Documents/ZED_data/disparity_npy/" + obj + "_cropped.npy")
-        mastr_w = disp_mastr.shape[1]
-        mastr_h = disp_mastr.shape[0]
-        target_w = disp.shape[3]
-        target_h = disp.shape[2]
-        dim = (target_w, target_h)
-        resized_disparity = cv2.resize(disp_mastr, dim, interpolation=cv2.INTER_AREA)
-        breakpoint()
-        np.save("disp.npy", resized_disparity)
-        plt.figure(figsize=(30, 20))
 
-        # Change this if needed: remove the vmin and vmax to see the most common range for the disparity values
-        # and add vmin, vmax back for better visualizations and comparisons
-        plt.imshow(resized_disparity, cmap='jet', vmin=-25, vmax=175)
-        plt.colorbar(label='Disparity')
-        plt.title('Disparity Map')
-        plt.xlabel('X')
-        plt.ylabel('Y')
-        plt.show()
+        # -- original disp
+        if not self.mast3r_init:
+            print("Running original SelectiveIGEV on ", self.obj)
+            plt.figure(figsize=(30, 20))
 
-        # breakpoint()
-        init_disp = resized_disparity.reshape(1, 1, resized_disparity.shape[0], resized_disparity.shape[1]) * (target_w / mastr_w)
-        init_disp = torch.Tensor(init_disp).to(match_left.device)
-        disp = init_disp
-        
-        # breakpoint()
+            # Change this if needed: remove the vmin and vmax to see the most common range for the disparity values
+            # and add vmin, vmax back for better visualizations and comparisons
+            plt.imshow(np.array(disp[0][0]), cmap='jet', vmin=-25, vmax=175)
+            plt.colorbar(label='Disparity')
+            plt.title('Disparity Map')
+            plt.xlabel('X')
+            plt.ylabel('Y')
+            plt.savefig("output/init_disparity/" + self.obj + ".png", format='png')
+            plt.show()
+
+        # -- mast3r initialization
+        else:
+            print("Running Selective IGEV with mast3r initialization on ", self.obj)
+            data_root_dir = self.data_root_dir
+            if data_root_dir[-1] != "/":
+                data_root_dir = data_root_dir + "/"
+            disp_mastr = np.load(data_root_dir + "disparity_npy/" + self.obj + "_cropped.npy")
+            mastr_w = disp_mastr.shape[1]
+            mastr_h = disp_mastr.shape[0]
+            target_w = disp.shape[3]
+            target_h = disp.shape[2]
+            dim = (target_w, target_h)
+            resized_disparity = cv2.resize(disp_mastr, dim, interpolation=cv2.INTER_AREA)
+
+            # np.save("disp.npy", resized_disparity)
+            plt.figure(figsize=(30, 20))
+
+            # Change this if needed: remove the vmin and vmax to see the most common range for the disparity values
+            # and add vmin, vmax back for better visualizations and comparisons
+            plt.imshow(resized_disparity, cmap='jet', vmin=-25, vmax=175)
+            plt.colorbar(label='Disparity')
+            plt.title('Disparity Map')
+            plt.xlabel('X')
+            plt.ylabel('Y')
+            plt.savefig("output/init_disparity/" + self.obj + "_mast3r.png", format='png')
+            plt.show()
+
+            # breakpoint()
+            init_disp = resized_disparity.reshape(1, 1, resized_disparity.shape[0], resized_disparity.shape[1]) * (target_w / mastr_w)
+            init_disp = torch.Tensor(init_disp).to(match_left.device)
+
+            # -- Change here
+            disp = init_disp
+
         # -- end of temp
         
         disp_preds = []
@@ -240,11 +270,12 @@ class IGEVStereo(nn.Module):
 
             # upsample predictions
             disp_up = self.upsample_disp(disp, mask_feat_4, stem_2x)
-            # breakpoint()
             disp_preds.append(disp_up)
 
         if test_mode:
             return disp_up
+        
+        print("context upsample")
 
         init_disp = context_upsample(init_disp*4., spx_pred.float()).unsqueeze(1)
         return init_disp, disp_preds
