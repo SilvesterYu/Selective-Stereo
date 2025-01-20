@@ -226,7 +226,7 @@ class IGEVStereo(nn.Module):
             data_root_dir = self.data_root_dir
             if data_root_dir[-1] != "/":
                 data_root_dir = data_root_dir + "/"
-            disp_mastr = np.load(data_root_dir + "disparity_npy/" + self.obj + "_cropped.npy")
+            disp_mastr = np.load(data_root_dir + "disparity_mast3r/" + self.obj + "_cropped.npy")
             mastr_w = disp_mastr.shape[1]
             mastr_h = disp_mastr.shape[0]
             target_w = disp.shape[3]
