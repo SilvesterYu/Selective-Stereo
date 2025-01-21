@@ -202,7 +202,7 @@ class IGEVStereo(nn.Module):
         b, c, h, w = match_left.shape
         coords = torch.arange(w).float().to(match_left.device).reshape(1,1,w,1).repeat(b, h, 1, 1)
         disp = init_disp
-
+        
         # -- # (temp)
 
         # -- original disp
@@ -231,7 +231,9 @@ class IGEVStereo(nn.Module):
             mastr_h = disp_mastr.shape[0]
             target_w = disp.shape[3]
             target_h = disp.shape[2]
+
             dim = (target_w, target_h)
+            print("resized disparity size", dim)
             resized_disparity = cv2.resize(disp_mastr, dim, interpolation=cv2.INTER_AREA)
 
             # np.save("disp.npy", resized_disparity)

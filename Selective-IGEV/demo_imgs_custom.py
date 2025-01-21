@@ -1,5 +1,6 @@
 import sys
 sys.path.append("core")
+import copy
 
 import argparse
 import glob
@@ -48,6 +49,7 @@ def demo(args):
         for (imfile1, imfile2) in tqdm(list(zip(left_images, right_images))):
             image1 = load_image(imfile1)
             image2 = load_image(imfile2)
+            original_image1 = copy.deepcopy(image1)
 
             padder = InputPadder(image1.shape, divis_by=32)
             image1, image2 = padder.pad(image1, image2)
@@ -57,6 +59,10 @@ def demo(args):
 
             # np.save("output/disparity.npy", disp[0][0]) # original
             # --
+            # (temp)
+            disp = disp[:, :, 2:-2, :]
+            # (end of temp)
+            print("final disparity shape", disp.shape)
             if args.mast3r_init:
                 np.save("output/"+ args.obj + "_mast3r.npy", disp[0][0])
             else:
