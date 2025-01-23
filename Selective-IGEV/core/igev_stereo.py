@@ -219,6 +219,8 @@ class IGEVStereo(nn.Module):
             plt.ylabel('Y')
             plt.savefig("output/init_disparity/" + self.obj + ".png", format='png')
             plt.show()
+            
+            np.save("output/init/" + self.obj + ".npy", disp[0][0])
 
         # -- mast3r initialization
         else:
